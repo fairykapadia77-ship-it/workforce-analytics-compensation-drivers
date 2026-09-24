@@ -1,0 +1,204 @@
+---
+title: "Tiny Project: Workforce Analytics and Compensation Drivers"
+author: "Fairy"
+date: "2026-09-15"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Introduction
+
+In human resource analytics, compensation structure is closely tied to professional experience and department roles. This **Tiny Project** investigates the distribution of compensation and organizational demographics across a sample corporate cohort. The analysis includes data importing, structural validation, descriptive statistical measures, categorical visualizations, and linear correlation modeling.
+
+---
+
+# Database / Data Importing
+
+The dataset is imported from the project directory using a relative file path for cross-environment reproducibility.
+
+```{r import-data}
+# Read corporate payroll records
+employee_data <- read.csv("employee_data.csv")
+
+# Print complete data frame
+employee_data
+
+# Inspect preview observations
+head(employee_data)
+
+# Structure and attribute datatype check
+str(employee_data)
+```
+
+**R Code Explanation:**
+* `read.csv("employee_data.csv")`: Ingests the tabular comma-separated values into an R data frame.
+* `head(employee_data)`: Inspects the top 6 entries to confirm column and row alignments.
+* `str(employee_data)`: Displays internal architecture, confirming text categories (`Name`, `Department`, `Performance`) and integer vectors (`Experience`, `Salary`).
+
+---
+
+# Data Preprocessing and Cleaning
+
+The dataset is reviewed to ensure zero missing entries and to verify value ranges before statistical analysis.
+
+```{r data-cleaning}
+# Verify presence of missing values (NA)
+colSums(is.na(employee_data))
+
+# Generate statistical distribution summary
+summary(employee_data)
+```
+
+**Interpretation of Preprocessing Results:**
+* `colSums(is.na(employee_data))` returns 0 across all variables, confirming complete data integrity with no missing records.
+* Experience ranges from 1 year to 9 years (mean: 5.0 years). Monthly salary spans from ₹32,000 to ₹92,000, averaging ₹63,400.
+
+---
+
+# Data Analysis and Statistical Exploration
+
+Central tendency and dispersion are calculated for salaries, followed by frequency distribution tables for categorical factors.
+
+```{r statistical-exploration}
+# Statistical measures for Salary
+salary_median <- median(employee_data$Salary)
+salary_var    <- var(employee_data$Salary)
+salary_sd     <- sd(employee_data$Salary)
+
+salary_median
+salary_var
+salary_sd
+
+# Categorical frequency tables
+dept_count   <- table(employee_data$Department)
+perf_count   <- table(employee_data$Performance)
+
+dept_count
+perf_count
+```
+
+**R Code Explanation:**
+* `median()` determines the midpoint salary (50th percentile).
+* `var()` and `sd()` measure salary dispersion across the cohort.
+* `table()` computes frequency breakdowns for qualitative attributes.
+
+**Statistical Interpretation:**
+* **Central Tendency:** The median compensation is **₹66,000**, closely matching the group mean.
+* **Dispersion:** The standard deviation is **₹20,774.98**, reflecting natural pay disparities tied to seniority.
+* **Demographics:** IT and Finance hold the largest shares (3 employees each), while Marketing and HR comprise 2 employees each. Half the team (5 employees) maintains a 'High' performance tier.
+
+---
+
+# Graph and Plot Creation
+
+## Categorical Distribution Visualizations
+
+Pie charts display corporate department representation and employee performance tiers.
+
+```{r pie-charts, fig.width=9, fig.height=4.5}
+par(mfrow = c(1, 2))
+
+# Department Representation
+pie(
+  dept_count,
+  main = "Department Distribution",
+  labels = paste(names(dept_count), "-", dept_count),
+  col = c("#7fc97f", "#beaed4", "#fdc086", "#ffff99")
+)
+
+# Performance Tier Distribution
+pie(
+  perf_count,
+  main = "Performance Tier Breakdown",
+  labels = paste(names(perf_count), "-", perf_count),
+  col = c("#66c2a5", "#fc8d62", "#8da0cb")
+)
+
+par(mfrow = c(1, 1))
+```
+
+**Interpretation:**
+* The workforce shows balanced operational distribution across core domains.
+* 50% of the sample cohort qualifies for high-performance ratings, with 30% medium and 20% developing.
+
+---
+
+## Individual-Level Metric Comparisons
+
+Bar charts depict individual salary allocations and professional experience tenure.
+
+```{r bar-plots, fig.width=9, fig.height=5}
+# Salary Bar Plot
+barplot(
+  employee_data$Salary,
+  names.arg = employee_data$Name,
+  main = "Monthly Salary by Employee",
+  xlab = "Employee",
+  ylab = "Salary (INR)",
+  col = "#41b6c4",
+  las = 2
+)
+
+# Experience Bar Plot
+barplot(
+  employee_data$Experience,
+  names.arg = employee_data$Name,
+  main = "Years of Experience by Employee",
+  xlab = "Employee",
+  ylab = "Years",
+  col = "#fe9929",
+  las = 2
+)
+```
+
+**Interpretation:**
+* Ramesh (₹92,000; 9 years) and Manish (₹88,000; 8 years) command the highest compensation packages.
+* Junior team members Ananya (₹32,000; 1 year) and Kavita (₹38,000; 2 years) occupy baseline compensation levels.
+
+---
+
+## Bivariate Correlation Analysis
+
+Evaluating the association between professional experience (tenure) and salary compensation using Pearson's correlation and ordinary least squares linear regression.
+
+```{r correlation-scatter, fig.width=7, fig.height=5}
+# Compute Pearson correlation coefficient
+correlation_val <- cor(employee_data$Experience, employee_data$Salary)
+correlation_val
+
+# Scatter plot of Experience vs. Salary
+plot(
+  employee_data$Experience,
+  employee_data$Salary,
+  main = paste("Experience vs Salary (r =", round(correlation_val, 4), ")"),
+  xlab = "Experience (Years)",
+  ylab = "Salary (INR)",
+  pch = 19,
+  col = "#225ea8"
+)
+
+# Overlay trendline
+abline(lm(Salary ~ Experience, data = employee_data), col = "red", lwd = 2)
+```
+
+**Code Explanation & Interpretation:**
+* `cor()` determines linear correlation strength ($r \approx 0.994$).
+* `plot()` and `abline(lm(...))` display observations with an overlaid regression trendline.
+* **Interpretation:** A correlation coefficient of **+0.994** demonstrates a near-perfect positive correlation, validating that years of organizational experience serve as the primary predictive driver for base compensation.
+
+---
+
+# Findings and Conclusion
+
+* **Data Integrity:** All observations were clean, non-null, and structurally consistent.
+* **Compensation Drivers:** Employee remuneration scales consistently with professional seniority across all departments.
+* **Performance Clustering:** Senior professionals with higher pay rates consistently demonstrated higher evaluation ratings.
+* **Summary Insight:** Organizational retention and structured experience tiers directly correlate with compensation ladders, showing predictable annual growth per additional year of tenure.
